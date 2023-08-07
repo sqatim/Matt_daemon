@@ -4,7 +4,6 @@ OBJS/
 *.DS_Store
 a.out
 *.out.dSYM/
-*.a
 *.old
 .vscode/
 Matt_daemon
