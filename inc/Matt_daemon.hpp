@@ -1,19 +1,9 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/select.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <sys/wait.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
@@ -21,24 +11,18 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include <ctime>
-#include <cstdlib>
-#include <cstring>
-#include <cerrno>
-#include <csignal>
-#include <cstddef>
-#include <cctype>
-#include <cstdio>
-#include <ctime>
-#include <cstdarg>
-#include <netdb.h>
-#include <pwd.h>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <poll.h>
 
-#define MAX_CLIENTS 10
-#define MAX_BUFFER 1024
-#define MAX_PATH 1024
-#define MAX_LOG 1024
-#define MAX_LOG_SIZE 1024
+#define MAX_CLIENTS 3
+#define LISTEN_PORT 4242
+
 
 class Matt_daemon
 {
@@ -46,11 +30,11 @@ private:
     int _socket;
     int _port;
     struct sockaddr_in _addr;
-    int _addrlen;
-    int _client;
+    socklen_t _addrlen;
+    std::vector<int> _clients;
     // char _buffer[MAX_BUFFER + 1];
     std::string _log;
-
+    struct pollfd fds[MAX_CLIENTS + 1];
 
 public:
     Matt_daemon(void);
@@ -60,20 +44,14 @@ public:
     void bind_socket(void);
     void listen_socket(void);
     void accept_socket(void);
-    void read_socket(void);
-    void write_socket(void);
+    void read_socket(int client);
+    void write_socket(int client);
     void close_socket(void);
-
-    Matt_daemon & operator=(Matt_daemon const & rhs);
-
+    void checkMaxClients(int clientCount);
     void run(void);
 
-private:
-
-
+    Matt_daemon & operator=(Matt_daemon const & rhs);
 };
-
-std::ostream & operator<<(std::ostream & o, Matt_daemon const & rhs);
 
 
 
