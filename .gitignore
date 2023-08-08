@@ -8,3 +8,4 @@ a.out
 .vscode/
 Matt_daemon
 test/
+*.lock

@@ -1,7 +1,7 @@
 
 NAME 			= Matt_daemon
 
-CC 				= c++
+CC 				= c++ -std=c++11
 CFLAGS 			= -Wall -Wextra -Werror
 INCLUDES 		= -Iinc
 SRCDIR 			= srcs
