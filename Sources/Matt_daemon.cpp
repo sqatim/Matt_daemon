@@ -52,14 +52,14 @@ void Matt_daemon::read_socket(int client)
     if (valread == -1)
         throw std::runtime_error("read() failed");
 
-    std::ofstream file("client_messages.log", std::ios::app);
+    std::ofstream file("/var/log/matt_daemon/matt_daemon.log", std::ios::app);
     if (file.is_open())
     {
         file << buffer;
         file.close();
     }
     else
-        throw std::runtime_error("Failed to open client_messages.log");
+        throw std::runtime_error("Failed to open matt_daemon.log");
 }
 
 void Matt_daemon::write_socket(int client)

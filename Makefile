@@ -1,27 +1,17 @@
 NAME= Matt_daemon
 
 
-HEADERS= HEADERS/daemon.hpp\
-		HEADERS/Matt_daemon.hpp\
+HEADERS= Headers/daemon.hpp\
+		Headers/Matt_daemon.hpp\
 		
 OBJ_PATH= objects
 
 SRC_PATH= Sources
-# SRCS_NAME= main.cpp\
-# 		daemon.cpp
+
 SRCS_NAME= main.cpp\
 		daemon.cpp\
 		Matt_daemon.cpp\
-		# Request.class.cpp\
-		Server.class.cpp\
-		WebServer.class.cpp\
-		ft_split.cpp\
-		manipulation.cpp\
-		methods.cpp\
-		tools.cpp\
-		# location.cpp\
-		location2.cpp\
-		Response.class.cpp\
+
 
 OBJS= $(SRCS_NAME:.cpp=.o)
 OBJ= $(addprefix $(OBJ_PATH)/,$(OBJS))
@@ -30,7 +20,7 @@ SRC= $(addprefix $(SRC_PATH)/,$(SRCS_NAME))
 # FLAGS= -Wall -Wextra -Werror
 H_FLAG= -I Headers
 
-COMP= clang++
+COMP= clang++ -std=c++17
 
 all: $(NAME) 
 
