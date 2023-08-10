@@ -8,6 +8,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "Tintin_reporter.hpp"
+
 namespace fs = std::filesystem;
 
 std::string currentDateTime()
@@ -20,38 +22,9 @@ std::string currentDateTime()
     return buf;
 }
 
-void log_message(const std::string &log_type, const std::string &username, const std::string &message)
-{
-    std::string timestamp = currentDateTime();
-    std::string log_entry = "[" + timestamp + "] [" + log_type + "] - " + username + ": " + message;
-
-    size_t lastCharPos = log_entry.find_last_not_of(" \t\n\r\f\v");
-    if (lastCharPos != std::string::npos)
-        log_entry = log_entry.substr(0, lastCharPos + 1);
-
-    fs::path folderPath = "/var/log/matt_daemon";
-    std::ofstream log_file("/var/log/matt_daemon/matt_daemon.log", std::ios::app);
-    if (!fs::exists(folderPath))
-    {
-        if (!fs::create_directories(folderPath))
-        {
-            std::cout << "Folder created successfully." << std::endl;
-        }
-        else
-        {
-            std::cerr << "Failed to create folder." << std::endl;
-        }
-    }
-    if (log_file.is_open() && !log_entry.empty())
-    {
-        log_file << log_entry << '\n';
-        log_file.close();
-    }
-}
-
 void signalMsg(int signum)
 {
-    log_message("INFO", "Matt_daemon", "Signal handler");
+    log_message_2("INFO", "Matt_daemon", "Signal handler");
 }
 
 void handle_signals()
@@ -106,8 +79,8 @@ void startDaemon()
     {
         if (errno == EWOULDBLOCK)
         {
-            log_message("ERROR", "Matt_daemon", "Error file locked");
-            log_message("INFO", "Matt_daemon", "Quitting");
+            log_message_2("ERROR", "Matt_daemon", "Error file locked");
+            log_message_2("INFO", "Matt_daemon", "Quitting");
             std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;
         }
         else
@@ -118,8 +91,8 @@ void startDaemon()
     handle_signals();
     Matt_daemon *daemon = Matt_daemon::getInstance();
     pid_t daemonPid = daemon->getDaemonPid();
-    daemon->log_message("INFO", "Matt_daemon", "Entering Daemon mode.");
-    daemon->log_message("INFO", "Matt_daemon", "started. PID: " + std::to_string(daemonPid));
+    log_message_1("INFO", "Matt_daemon", "Entering Daemon mode.");
+    log_message_1("INFO", "Matt_daemon", "started. PID: " + std::to_string(daemonPid));
     daemon->run();
 
     if (flock(fd, LOCK_UN) == -1)

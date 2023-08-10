@@ -1,5 +1,4 @@
-#ifndef MATT_DAEMON_HPP
-#define MATT_DAEMON_HPP
+#pragma once
 
 #include <iostream>
 #include <stdexcept>
@@ -14,6 +13,9 @@
 #include <string.h>
 #include <fcntl.h>
 #include <filesystem>
+
+#include "Tintin_reporter.hpp"
+
 #define MAX_CLIENTS 3
 #define LISTEN_PORT 4242
 namespace fs = std::filesystem;
@@ -42,9 +44,9 @@ private:
     {
         _addrlen = sizeof(_addr);
 
-        log_message("INFO", "Matt_daemon", "Started.");
-        log_message("INFO", "Matt_daemon", "Creating Server.");
-        log_message("INFO", "Matt_daemon", "Server created.");
+        log_message_1("INFO", "Matt_daemon", "Started.");
+        log_message_1("INFO", "Matt_daemon", "Creating Server.");
+        log_message_1("INFO", "Matt_daemon", "Server created.");
 
         _daemonPid = getpid();
     }
@@ -67,7 +69,7 @@ public:
     void write_socket(int client);
     void close_socket(void);
     void checkMaxClients(void);
-    void log_message(const std::string &log_type, const std::string &username, const std::string &message);
+    // void log_message(const std::string &log_type, const std::string &username, const std::string &message);
     std::string currentDateTime(void);
 
     void run(void);
@@ -77,6 +79,3 @@ public:
     return _daemonPid;
 }
 };
-
-
-#endif

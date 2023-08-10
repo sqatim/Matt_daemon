@@ -1,4 +1,5 @@
 #include "Matt_daemon.hpp"
+#include "Tintin_reporter.hpp"
 
 // namespace fs = std::filesystem;
 
@@ -74,42 +75,7 @@ void Matt_daemon::accept_socket()
     _clients.push_back(newClient);
 }
 
-void Matt_daemon::log_message(const std::string &log_type, const std::string &username, const std::string &message)
-{
-    std::string timestamp = currentDateTime();
-    std::string log_entry = "[" + timestamp + "] [" + log_type + "] - " + username + ": " + message;
 
-    size_t lastCharPos = log_entry.find_last_not_of(" \t\n\r\f\v");
-    if (lastCharPos != std::string::npos)
-        log_entry = log_entry.substr(0, lastCharPos + 1);
-
-    fs::path folderPath = "/var/log/matt_daemon";
-    if (!fs::exists(folderPath))
-    {
-        if (fs::create_directories(folderPath))
-        {
-            std::cout << "Folder created successfully." << std::endl;
-        }
-        else
-        {
-            std::cerr << "Failed to create folder." << std::endl;
-        }
-    }
-    std::ofstream log_file(this->_logFile, std::ios::app);
-    if (log_file.is_open() && !log_entry.empty())
-    {
-        log_file << log_entry << '\n';
-        log_file.close();
-    }
-    else
-    {
-        log_message("ERROR", "Matt_daemon", "Failed to open client_messages.log");
-        for (size_t i = 1; i <= _clients.size(); i++)
-            close(fds[i].fd);
-
-        close_socket();
-    }
-}
 
 std::string Matt_daemon::currentDateTime()
 {

@@ -1,16 +1,17 @@
 NAME= Matt_daemon
 
-
-HEADERS= Headers/daemon.hpp\
-		Headers/Matt_daemon.hpp\
+HEADERS=	Headers/daemon.hpp\
+			Headers/Matt_daemon.hpp\
+			Headers/Tintin_reporter.hpp\
 		
 OBJ_PATH= objects
 
 SRC_PATH= Sources
 
-SRCS_NAME= main.cpp\
-		daemon.cpp\
-		Matt_daemon.cpp\
+SRCS_NAME=	main.cpp\
+			daemon.cpp\
+			Matt_daemon.cpp\
+			Tintin_reporter.cpp\
 
 
 OBJS= $(SRCS_NAME:.cpp=.o)
