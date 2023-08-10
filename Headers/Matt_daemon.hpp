@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Tintin_reporter.hpp"
+
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -14,7 +16,6 @@
 #include <fcntl.h>
 #include <filesystem>
 
-#include "Tintin_reporter.hpp"
 
 #define MAX_CLIENTS 3
 #define LISTEN_PORT 4242

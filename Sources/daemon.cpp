@@ -1,4 +1,6 @@
+#include "Tintin_reporter.hpp"
 #include "daemon.hpp"
+
 #include <chrono>
 #include <thread>
 #include "Matt_daemon.hpp"
@@ -8,7 +10,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "Tintin_reporter.hpp"
 
 namespace fs = std::filesystem;
 
