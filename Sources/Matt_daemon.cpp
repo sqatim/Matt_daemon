@@ -12,7 +12,7 @@ void Matt_daemon::create_socket()
     _socket = socket(AF_INET, SOCK_STREAM, 0);
     if (_socket == -1)
     {
-        log_message_1("ERROR", "Matt_daemon", "socket() failed");
+        tintin_reporter->log_message_1("ERROR", "Matt_daemon", "socket() failed");
         throw std::runtime_error("socket() failed");
     }
 }
@@ -27,20 +27,19 @@ void Matt_daemon::bind_socket()
     int reuseAddr = 1;
     if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &reuseAddr, sizeof(reuseAddr)) == -1)
     {
-        log_message_1("ERROR", "Matt_daemon", "setsockopt() failed");
-
+        tintin_reporter->log_message_1("ERROR", "Matt_daemon", "setsockopt() failed");
         throw std::runtime_error("setsockopt() failed");
     }
 
     if (bind(_socket, (struct sockaddr *)&_addr, sizeof(_addr)) == -1)
     {
-        log_message_1("ERROR", "Matt_daemon", "bind() failed");
+        tintin_reporter->log_message_1("ERROR", "Matt_daemon", "bind() failed");
         throw std::runtime_error("bind() failed");
     }
 
     if (fcntl(_socket, F_SETFL, O_NONBLOCK) == -1)
     {
-        log_message_1("ERROR", "Matt_daemon", "fcntl() failed (O_NONBLOCK)");
+        tintin_reporter->log_message_1("ERROR", "Matt_daemon", "fcntl() failed (O_NONBLOCK)");
         throw std::runtime_error("fcntl() failed");
     }
 }
@@ -49,7 +48,7 @@ void Matt_daemon::listen_socket()
 {
     if (listen(_socket, MAX_CLIENTS) == -1)
     {
-        log_message_1("ERROR", "Matt_daemon", "listen() failed");
+        tintin_reporter->log_message_1("ERROR", "Matt_daemon", "listen() failed");
         throw std::runtime_error("listen() failed");
     }
 }
@@ -61,30 +60,17 @@ void Matt_daemon::accept_socket()
     {
         if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) // check this
         {
-
-            log_message_1("ERROR", "Matt_daemon", "accept() Just for check");
+            tintin_reporter->log_message_1("ERROR", "Matt_daemon", "accept() Just for check");
             throw std::runtime_error("accept() Just for check");
             return;
         }
         else
         {
-            log_message_1("ERROR", "Matt_daemon", "accept() failed");
+            tintin_reporter->log_message_1("ERROR", "Matt_daemon", "accept() failed");
             throw std::runtime_error("accept() failed");
         }
     }
     _clients.push_back(newClient);
-}
-
-
-
-std::string Matt_daemon::currentDateTime()
-{
-    time_t now = time(nullptr);
-    struct tm tstruct;
-    char buf[80];
-    tstruct = *localtime(&now);
-    strftime(buf, sizeof(buf), "%d/%m/%Y-%H:%M:%S", &tstruct);
-    return buf;
 }
 
 void Matt_daemon::read_socket(int client, int *clientCount)
@@ -93,7 +79,7 @@ void Matt_daemon::read_socket(int client, int *clientCount)
     int valread = read(client, buffer, sizeof(buffer));
     if (valread == -1)
     {
-        log_message_1("ERROR", "Matt_daemon", "read() failed");
+        tintin_reporter->log_message_1("ERROR", "Matt_daemon", "read() failed");
         throw std::runtime_error("read() failed");
     }
     if (valread == 0)
@@ -106,13 +92,15 @@ void Matt_daemon::read_socket(int client, int *clientCount)
                 break;
             }
         }
-        (*clientCount)--;
+        this->fds[*clientCount].fd = -1;
+        this->shiftArray(clientCount);
+        // (*clientCount)--;
         close(client);
     }
     else
     {
         std::string message = buffer;
-        log_message_1("LOG", "Matt_daemon", "User input: " + message);
+        tintin_reporter->log_message_1("LOG", "Matt_daemon", "User input: " + message);
     }
 }
 
@@ -130,7 +118,7 @@ void Matt_daemon::close_socket()
 void Matt_daemon::checkMaxClients()
 {
     if (this->_clients.size() > MAX_CLIENTS)
-        log_message_1("ERROR", "Matt_daemon", "Max clients reached");
+        tintin_reporter->log_message_1("ERROR", "Matt_daemon", "Max clients reached");
 }
 
 void Matt_daemon::run()

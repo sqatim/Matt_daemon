@@ -25,7 +25,7 @@ std::string currentDateTime()
 
 void signalMsg(int signum)
 {
-    log_message_2("INFO", "Matt_daemon", "Signal handler");
+    tintin_reporter->log_message_2("INFO", "Matt_daemon", "Signal handler");
 }
 
 void handle_signals()
@@ -80,8 +80,8 @@ void startDaemon()
     {
         if (errno == EWOULDBLOCK)
         {
-            log_message_2("ERROR", "Matt_daemon", "Error file locked");
-            log_message_2("INFO", "Matt_daemon", "Quitting");
+            tintin_reporter->log_message_2("ERROR", "Matt_daemon", "Error file locked");
+            tintin_reporter->log_message_2("INFO", "Matt_daemon", "Quitting");
             std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;
         }
         else
@@ -92,8 +92,9 @@ void startDaemon()
     handle_signals();
     Matt_daemon *daemon = Matt_daemon::getInstance();
     pid_t daemonPid = daemon->getDaemonPid();
-    log_message_1("INFO", "Matt_daemon", "Entering Daemon mode.");
-    log_message_1("INFO", "Matt_daemon", "started. PID: " + std::to_string(daemonPid));
+    tintin_reporter->log_message_1("INFO", "Matt_daemon", "Entering Daemon mode.");
+    tintin_reporter->log_message_1("INFO", "Matt_daemon", "started. PID: " + std::to_string(daemonPid));
+
     daemon->run();
 
     if (flock(fd, LOCK_UN) == -1)

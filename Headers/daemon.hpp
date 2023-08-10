@@ -7,5 +7,6 @@
 #include <unistd.h>
 
 void startDaemon();
+Tintin_reporter *tintin_reporter = Tintin_reporter::getInstance();
 // void log_message(const std::string &log_type, const std::string &username, const std::string &message);
 

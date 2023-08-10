@@ -1,6 +1,21 @@
 #include "Tintin_reporter.hpp"
 
-void Tintin_reporter::log_message_1(const std::string &log_type, const std::string &username, const std::string &message)
+Tintin_reporter::~Tintin_reporter()
+{
+}
+
+
+std::string Tintin_reporter::currentDateTime()
+{
+    time_t now = time(nullptr);
+    struct tm tstruct;
+    char buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%d/%m/%Y-%H:%M:%S", &tstruct);
+    return buf;
+}
+
+void Tintin_reporter::log_message_1(const std::string &log_type, const std::string &username, const std::string &message, Matt_daemon &Mt_daemon)
 {
     std::string timestamp = currentDateTime();
     std::string log_entry = "[" + timestamp + "] [" + log_type + "] - " + username + ": " + message;
@@ -29,11 +44,14 @@ void Tintin_reporter::log_message_1(const std::string &log_type, const std::stri
     }
     else
     {
-        log_message_1("ERROR", "Matt_daemon", "Failed to open client_messages.log");
-        for (size_t i = 1; i <= _clients.size(); i++)
-            close(fds[i].fd);
+         tintin_reporter->log_message_1("ERROR", "Matt_daemon", "Failed to open client_messages.log");
+        // for (size_t i = 1; i <= Mt_daemon.getClientsCount(); i++)
+        // {
+        //     int fd = Mt_daemon.getFD(i);
+        //     close(fd);
+        // }
 
-        close_socket();
+        // close_socket();
     }
 }
 

@@ -16,7 +16,6 @@
 #include <fcntl.h>
 #include <filesystem>
 
-
 #define MAX_CLIENTS 3
 #define LISTEN_PORT 4242
 namespace fs = std::filesystem;
@@ -34,20 +33,21 @@ private:
     std::string _logFile = "/var/log/matt_daemon/matt_daemon.log";
     struct pollfd fds[MAX_CLIENTS + 1];
     pid_t _daemonPid; // pid of the daemon process
+    Tintin_reporter *tintin_reporter = Tintin_reporter::getInstance();
 
     Matt_daemon()
     {
         // Private constructor to prevent direct instantiation
-        initialize();   
+        initialize();
     }
 
     void initialize()
     {
         _addrlen = sizeof(_addr);
 
-        log_message_1("INFO", "Matt_daemon", "Started.");
-        log_message_1("INFO", "Matt_daemon", "Creating Server.");
-        log_message_1("INFO", "Matt_daemon", "Server created.");
+        tintin_reporter->log_message_1("INFO", "Matt_daemon", "Starting.");
+        tintin_reporter->log_message_1("INFO", "Matt_daemon", "Creating Server.");
+        tintin_reporter->log_message_1("INFO", "Matt_daemon", "Server created.");
 
         _daemonPid = getpid();
     }
@@ -76,7 +76,46 @@ public:
     void run(void);
 
     pid_t getDaemonPid() const
-{
-    return _daemonPid;
-}
+    {
+        return _daemonPid;
+    }
+
+    size_t getClientsCount() const
+    {
+        return _clients.size();
+    }
+
+    // int getFD(int fd)
+    // {
+    //     for (int i = 0; i < MAX_CLIENTS + 1; ++i)
+    //     {
+    //         if (fds[i].fd == fd)
+    //             return i;
+    //     }
+    //     return -1;
+    // }
+    void shiftArray(int *size)
+    {
+        int i = 0;
+        int n = *size;
+
+        while (i < n)
+        {
+            if (fds[i].fd == -1)
+            {
+                for (int j = i; j < n - 1; j++)
+                {
+                    fds[j].fd = fds[j + 1].fd;
+                    fds[j].events = fds[j + 1].events;
+                }
+                n--;
+            }
+            else
+            {
+                i++;
+            }
+        }
+
+        *size = n;
+    }
 };
