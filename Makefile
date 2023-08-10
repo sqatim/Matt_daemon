@@ -18,7 +18,7 @@ OBJS= $(SRCS_NAME:.cpp=.o)
 OBJ= $(addprefix $(OBJ_PATH)/,$(OBJS))
 SRC= $(addprefix $(SRC_PATH)/,$(SRCS_NAME))
 
-# FLAGS= -Wall -Wextra -Werror
+FLAGS= -Wall -Wextra -Werror
 H_FLAG= -I Headers
 
 COMP= clang++ -std=c++17

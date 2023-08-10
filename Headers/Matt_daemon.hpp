@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Tintin_reporter.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -15,10 +14,12 @@
 #include <string.h>
 #include <fcntl.h>
 #include <filesystem>
+#include "daemon.hpp"
 
 #define MAX_CLIENTS 3
 #define LISTEN_PORT 4242
 namespace fs = std::filesystem;
+
 
 class Matt_daemon
 {
@@ -32,8 +33,8 @@ private:
     std::vector<int> _clients;
     std::string _logFile = "/var/log/matt_daemon/matt_daemon.log";
     struct pollfd fds[MAX_CLIENTS + 1];
-    pid_t _daemonPid; // pid of the daemon process
-    Tintin_reporter *tintin_reporter = Tintin_reporter::getInstance();
+    pid_t _daemonPid;
+    // Tintin_reporter& tintin_reporter = Tintin_reporter::getInstance();
 
     Matt_daemon()
     {
@@ -45,9 +46,9 @@ private:
     {
         _addrlen = sizeof(_addr);
 
-        tintin_reporter->log_message_1("INFO", "Matt_daemon", "Starting.");
-        tintin_reporter->log_message_1("INFO", "Matt_daemon", "Creating Server.");
-        tintin_reporter->log_message_1("INFO", "Matt_daemon", "Server created.");
+        Tintin_reporter::getInstance().log_message_1("INFO", "Matt_daemon", "Starting.");
+        Tintin_reporter::getInstance().log_message_1("INFO", "Matt_daemon", "Creating Server.");
+        Tintin_reporter::getInstance().log_message_1("INFO", "Matt_daemon", "Server created.");
 
         _daemonPid = getpid();
     }
@@ -69,7 +70,7 @@ public:
     void read_socket(int client, int *clientCount);
     void write_socket(int client);
     void close_socket(void);
-    void checkMaxClients(void);
+    bool checkMaxClients(void);
     // void log_message(const std::string &log_type, const std::string &username, const std::string &message);
     std::string currentDateTime(void);
 

@@ -1,4 +1,3 @@
-#include "Tintin_reporter.hpp"
 #include "daemon.hpp"
 
 #include <chrono>
@@ -25,7 +24,15 @@ std::string currentDateTime()
 
 void signalMsg(int signum)
 {
-    tintin_reporter->log_message_2("INFO", "Matt_daemon", "Signal handler");
+    (void) signum;
+    Tintin_reporter::getInstance().log_message_2("INFO", "Matt_daemon", "Signal handler");
+    Tintin_reporter::getInstance().log_message_2("INFO", "Matt_daemon", "Quitting");
+    std::remove("/var/lock/matt_daemon.lock");
+    for (int i = getdtablesize(); i >= 0; --i)
+    {
+        close(i); /* close all descriptors */
+    }
+    exit(1);
 }
 
 void handle_signals()
@@ -41,12 +48,9 @@ void handle_signals()
 
 void startDaemon()
 {
-    // int lfp
     int pid;
     int i;
     int fd;
-    int number;
-    int stdError;
     if (geteuid() != 0 || getuid() != 0)
     {
         std::cout << "not root" << std::endl;
@@ -59,12 +63,12 @@ void startDaemon()
         exit(0);
     setsid();
     chdir("/var/lock");
-    fs::path folderPath = "matt_daemon";
-    if (!fs::exists(folderPath))
-    {
-        if (!fs::create_directories(folderPath))
-            std::cerr << "Folder created successfully." << std::endl;
-    }
+    // fs::path folderPath = "matt_daemon";
+    // if (!fs::exists(folderPath))
+    // {
+        // if (!fs::create_directories(folderPath))
+            // std::cerr << "Folder created successfully." << std::endl;
+    // }
 
     for (i = getdtablesize(); i >= 0; --i)
     {
@@ -75,13 +79,13 @@ void startDaemon()
     dup2(i, 0);
     dup2(i, 1);
     dup2(STDERR_FILENO, 2);
-    fd = open("/var/lock/matt_daemon/matt_daemon.lock", O_WRONLY | O_CREAT | O_APPEND, 0666);
+    fd = open("/var/lock/matt_daemon.lock", O_WRONLY | O_CREAT | O_APPEND, 0666);
     if (flock(fd, LOCK_EX | LOCK_NB) == -1)
     {
         if (errno == EWOULDBLOCK)
         {
-            tintin_reporter->log_message_2("ERROR", "Matt_daemon", "Error file locked");
-            tintin_reporter->log_message_2("INFO", "Matt_daemon", "Quitting");
+            Tintin_reporter::getInstance().log_message_2("ERROR", "Matt_daemon", "Error file locked");
+            Tintin_reporter::getInstance().log_message_2("INFO", "Matt_daemon", "Quitting");
             std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;
         }
         else
@@ -92,8 +96,8 @@ void startDaemon()
     handle_signals();
     Matt_daemon *daemon = Matt_daemon::getInstance();
     pid_t daemonPid = daemon->getDaemonPid();
-    tintin_reporter->log_message_1("INFO", "Matt_daemon", "Entering Daemon mode.");
-    tintin_reporter->log_message_1("INFO", "Matt_daemon", "started. PID: " + std::to_string(daemonPid));
+    Tintin_reporter::getInstance().log_message_1("INFO", "Matt_daemon", "Entering Daemon mode.");
+    Tintin_reporter::getInstance().log_message_1("INFO", "Matt_daemon", "started. PID: " + std::to_string(daemonPid));
 
     daemon->run();
 
@@ -102,6 +106,6 @@ void startDaemon()
         std::cerr << "Error releasing exclusive lock." << std::endl;
     }
     close(fd);
-    std::remove("/var/lock/matt_daemon/matt_daemon.lock");
+    std::remove("/var/lock/matt_daemon.lock");
     return;
 }
