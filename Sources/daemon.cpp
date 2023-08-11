@@ -41,7 +41,6 @@ void handle_signals()
     // Ignore all signals
     for (int signum = 1; signum <= 31; signum++)
     {
-        // if (signum != 9 && signum != 17)
         signal(signum, signalMsg);
     }
 }
@@ -53,7 +52,7 @@ void startDaemon()
     int fd;
     if (geteuid() != 0 || getuid() != 0)
     {
-        std::cout << "not root" << std::endl;
+        std::cerr << "You don't have the privileges to run the daemon." << std::endl;
         exit(1);
     }
     pid = fork();
@@ -63,13 +62,6 @@ void startDaemon()
         exit(0);
     setsid();
     chdir("/var/lock");
-    // fs::path folderPath = "matt_daemon";
-    // if (!fs::exists(folderPath))
-    // {
-        // if (!fs::create_directories(folderPath))
-            // std::cerr << "Folder created successfully." << std::endl;
-    // }
-
     for (i = getdtablesize(); i >= 0; --i)
     {
         if (i != STDERR_FILENO)

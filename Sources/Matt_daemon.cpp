@@ -168,7 +168,6 @@ void Matt_daemon::read_socket(int client, int *clientCount)
             std::remove("/var/lock/matt_daemon.lock");
             exit(1);
         }
-        mes
         Tintin_reporter::getInstance().log_message_1("LOG", "Matt_daemon", "User input: " + message);
     }
 }
