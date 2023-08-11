@@ -24,8 +24,6 @@ namespace fs = std::filesystem;
 class Matt_daemon
 {
 private:
-    // static Matt_daemon *instance;
-    // static std::mutex mutex;
 
     int _socket;
     struct sockaddr_in _addr;
@@ -34,7 +32,6 @@ private:
     std::string _logFile = "/var/log/matt_daemon/matt_daemon.log";
     struct pollfd fds[MAX_CLIENTS + 1];
     pid_t _daemonPid;
-    // Tintin_reporter& tintin_reporter = Tintin_reporter::getInstance();
 
     Matt_daemon()
     {
@@ -54,8 +51,8 @@ private:
     }
 
 public:
-    Matt_daemon(const Matt_daemon &) = delete;
-    Matt_daemon &operator=(const Matt_daemon &) = delete;
+    Matt_daemon(const Matt_daemon &);
+    Matt_daemon &operator=(const Matt_daemon &);
 
     static Matt_daemon *getInstance()
     {
@@ -66,57 +63,22 @@ public:
     void create_socket(void);
     void bind_socket(void);
     void listen_socket(void);
-    void accept_socket(void);
+    bool accept_socket(void);
     void read_socket(int client, int *clientCount);
     void write_socket(int client);
     void close_socket(void);
     bool checkMaxClients(void);
-    // void log_message(const std::string &log_type, const std::string &username, const std::string &message);
-    std::string currentDateTime(void);
 
     void run(void);
 
-    pid_t getDaemonPid() const
-    {
-        return _daemonPid;
-    }
 
-    size_t getClientsCount() const
-    {
-        return _clients.size();
-    }
-
-    // int getFD(int fd)
-    // {
-    //     for (int i = 0; i < MAX_CLIENTS + 1; ++i)
-    //     {
-    //         if (fds[i].fd == fd)
-    //             return i;
-    //     }
-    //     return -1;
-    // }
-    void shiftArray(int *size)
-    {
-        int i = 0;
-        int n = *size;
-
-        while (i < n)
-        {
-            if (fds[i].fd == -1)
-            {
-                for (int j = i; j < n - 1; j++)
-                {
-                    fds[j].fd = fds[j + 1].fd;
-                    fds[j].events = fds[j + 1].events;
-                }
-                n--;
-            }
-            else
-            {
-                i++;
-            }
-        }
-
-        *size = n;
-    }
+    int getSocket() const;
+    struct sockaddr_in getSockAddr() const;
+    socklen_t getAddrLen() const;
+    std::vector<int> getClient() const;
+    std::string getLogFile() const;
+    const struct pollfd *getFds() const ; 
+    pid_t getDaemonPid() const;
+    size_t getClientsCount() const;
+    void shiftArray(int *size);
 };

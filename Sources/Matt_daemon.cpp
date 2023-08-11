@@ -1,12 +1,66 @@
-// #include "Tintin_reporter.hpp"
 #include "Matt_daemon.hpp"
 
-// namespace fs = std::filesystem;
-
-Matt_daemon::~Matt_daemon()
+Matt_daemon::Matt_daemon(const Matt_daemon &src)
 {
+    *this = src;
 }
 
+Matt_daemon &Matt_daemon::operator=(const Matt_daemon &src)
+{
+    if (this != &src)
+    {
+        this->_socket = src.getSocket();
+        this->_addr = src.getSockAddr();
+        this->_addrlen = src.getAddrLen();
+        std::vector<int> copy = src.getClient();
+        for (auto it = copy.begin(); it != copy.end(); it++)
+        {
+            this->_clients.push_back(*it);
+        }
+        this->_logFile = src.getLogFile();
+        // this->fds = src.getFds();
+        for (int index = 0; index < MAX_CLIENTS; index++)
+        {
+            this->fds[index].fd = src.getFds()[index].fd;
+            this->fds[index].events = src.getFds()[index].events;
+            this->fds[index].revents = src.getFds()[index].revents;
+        }
+        this->_daemonPid = src.getDaemonPid();
+    }
+    return *this;
+}
+
+int Matt_daemon::getSocket() const
+{
+    return this->_socket;
+}
+
+struct sockaddr_in Matt_daemon::getSockAddr() const
+{
+    return this->_addr;
+}
+socklen_t Matt_daemon::getAddrLen() const
+{
+    return this->_addrlen;
+}
+std::vector<int> Matt_daemon::getClient() const
+{
+    return this->_clients;
+}
+
+std::string Matt_daemon::getLogFile() const
+{
+    return this->_logFile;
+}
+const struct pollfd *Matt_daemon::getFds() const
+{
+    return this->fds;
+}
+
+pid_t Matt_daemon::getDaemonPid() const
+{
+    return this->_daemonPid;
+}
 void Matt_daemon::create_socket()
 {
     _socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -53,7 +107,7 @@ void Matt_daemon::listen_socket()
     }
 }
 
-void Matt_daemon::accept_socket()
+bool Matt_daemon::accept_socket()
 {
     int newClient = accept(_socket, (struct sockaddr *)&_addr, &_addrlen);
     if (newClient == -1)
@@ -62,7 +116,7 @@ void Matt_daemon::accept_socket()
         {
             Tintin_reporter::getInstance().log_message_1("ERROR", "Matt_daemon", "accept() Just for check");
             throw std::runtime_error("accept() Just for check");
-            return;
+            // return;
         }
         else
         {
@@ -70,7 +124,13 @@ void Matt_daemon::accept_socket()
             throw std::runtime_error("accept() failed");
         }
     }
+    if (!checkMaxClients())
+    {
+        close(newClient);
+        return false;
+    }
     _clients.push_back(newClient);
+    return true;
 }
 
 void Matt_daemon::read_socket(int client, int *clientCount)
@@ -94,20 +154,21 @@ void Matt_daemon::read_socket(int client, int *clientCount)
         }
         this->fds[*clientCount].fd = -1;
         this->shiftArray(clientCount);
-        // (*clientCount)--;
         close(client);
     }
     else
     {
         std::string message = buffer;
-        if (message == "quit\n" )
+        if (message == "quit\n")
         {
-            for(auto it = this->_clients.begin(); it != this->_clients.end(); it++)
+            for (auto it = this->_clients.begin(); it != this->_clients.end(); it++)
                 close(*it);
             close(this->fds[0].fd);
-            Tintin_reporter::getInstance().log_message_2("INFO", "Matt_daemon", "Quitting");
+            Tintin_reporter::getInstance().log_message_1("INFO", "Matt_daemon", "Quitting");
+            std::remove("/var/lock/matt_daemon.lock");
             exit(1);
         }
+        mes
         Tintin_reporter::getInstance().log_message_1("LOG", "Matt_daemon", "User input: " + message);
     }
 }
@@ -125,7 +186,7 @@ void Matt_daemon::close_socket()
 
 bool Matt_daemon::checkMaxClients()
 {
-    if (this->_clients.size() > MAX_CLIENTS)
+    if (this->_clients.size() >= MAX_CLIENTS)
     {
         Tintin_reporter::getInstance().log_message_1("ERROR", "Matt_daemon", "Max clients reached");
         return false;
@@ -149,37 +210,60 @@ void Matt_daemon::run()
     while (true)
     {
         int result = poll(fds, clientCount + 1, -1);
-
-        // log_message_1("ERROR", "Matt_daemon", "PolaPola");
         if (result == -1)
         {
             if (errno == EINTR)
                 continue;
             throw std::runtime_error("poll() failed");
         }
-
-        // if (checkMaxClients())
-        // {
-        checkMaxClients();
         if (fds[0].revents & POLLIN)
         {
-            accept_socket();
+            if (!accept_socket())
+                continue;
             fds[++clientCount].fd = _clients.back();
             fds[clientCount].events = POLLIN;
         }
 
-
         for (int i = 1; i <= clientCount; i++)
         {
             if (fds[i].revents & POLLIN)
-            {
                 read_socket(fds[i].fd, &clientCount);
-                // write_socket(fds[i].fd);
-            }
         }
-
-        // }
     }
 
     close_socket();
+}
+
+size_t Matt_daemon::getClientsCount() const
+{
+    return _clients.size();
+}
+
+void Matt_daemon::shiftArray(int *size)
+{
+    int i = 0;
+    int n = *size;
+
+    while (i < n)
+    {
+        if (fds[i].fd == -1)
+        {
+            for (int j = i; j < n - 1; j++)
+            {
+                fds[j].fd = fds[j + 1].fd;
+                fds[j].events = fds[j + 1].events;
+            }
+            n--;
+        }
+        else
+        {
+            i++;
+        }
+    }
+
+    *size = n;
+}
+
+Matt_daemon::~Matt_daemon()
+{
 }
